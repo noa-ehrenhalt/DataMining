@@ -1,7 +1,5 @@
 
 import time
-from bs4 import BeautifulSoup
-import requests
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
@@ -35,11 +33,30 @@ def get_animal_details(driver, ID_list):
             #     details_list = element_text.split('\n')
             #     print(details_list)
             if element_text != '':
-                details_list.append(element_text.split('\n'))
+                temp_list = element_text.split('\n')
+                if len(temp_list) < 3:
+                    details_list.append(temp_list)
 
-        print(details_list)
-        # animal_dict[ID] = [details_list[6:10], details_list[12], details_list[14:16]]
-    # print(animal_dict)
+        clean_list = clean_animal_list(details_list)
+        print(clean_list)
+        animal_dict[ID] = clean_list
+    print(animal_dict)
+
+
+def clean_animal_list(details_list):
+    try:
+        breed = details_list[1]
+        sex = details_list[2]
+        age = details_list[3]
+        fixed = details_list[4]
+        location = details_list[7]
+        intake_date = details_list[9]
+        available_date = details_list[10]
+        return [breed[1], sex[1], age[1], fixed[1], location[1], intake_date[1], available_date[1]]
+    except IndexError:
+        return ['no result']
+
+
 
 
 
