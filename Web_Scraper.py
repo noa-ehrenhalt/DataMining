@@ -13,11 +13,10 @@ ANIMAL_DETAIL_CLASS = "animalDetailItem"
 XPATH_NEXT_PAGE = "/html/body/div[1]/div[2]/div/div/div/div/div[2]/div/div/div/div/div/div[3]/div/div/div/div/div[2]/ul/li[12]/span"
 URL_DETAILS = "https://animalcare.lacounty.gov/view-our-animals/?animalCareCenter=ALL&animalType=ALL&sex=ALL&breed=ALL&animalAge=ALL&animalSize=ALL&animalID=&animalDetail="
 
+
 def get_animal_details(driver, ID_list):
     """
-    get animal details from page
-    :param ID_list:
-    :return:
+    get animal details from page by animal ID
     """
     animal_dict = {}
     for ID in ID_list:
@@ -28,10 +27,6 @@ def get_animal_details(driver, ID_list):
         details_list = []
         for i in elements:
             element_text = i.text
-            # print(element_text)
-            # if element_text != '':
-            #     details_list = element_text.split('\n')
-            #     print(details_list)
             if element_text != '':
                 temp_list = element_text.split('\n')
                 if len(temp_list) < 3:
@@ -44,6 +39,9 @@ def get_animal_details(driver, ID_list):
 
 
 def clean_animal_list(details_list):
+    """
+    scrap animal detail list and store: breed, sex, age, fixed, location, intake date and availability date in new list
+    """
     try:
         breed = details_list[1]
         sex = details_list[2]
@@ -55,10 +53,6 @@ def clean_animal_list(details_list):
         return [breed[1], sex[1], age[1], fixed[1], location[1], intake_date[1], available_date[1]]
     except IndexError:
         return ['no result']
-
-
-
-
 
 
 def get_animal_id(driver, ID_list):
@@ -112,8 +106,6 @@ def main():
         has_next_page = move_to_next_page(driver)
         
     get_animal_details(driver, ID_list)
-
-
     driver.quit()
 
 if __name__ == '__main__':
