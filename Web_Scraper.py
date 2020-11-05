@@ -1,5 +1,7 @@
 
 import time
+from bs4 import BeautifulSoup
+import requests
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
@@ -11,6 +13,35 @@ URL = "https://animalcare.lacounty.gov/view-our-animals/?animalCareCenter=ALL&an
 XPATH_ANIMAL_ID = "//html/body/div[1]/div[2]/div/div/div/div/div[2]/div/div/div/div/div/div[3]/div/div/div/div/div[3]/div/div[3]/div"
 ANIMAL_DETAIL_CLASS = "animalDetailItem"
 XPATH_NEXT_PAGE = "/html/body/div[1]/div[2]/div/div/div/div/div[2]/div/div/div/div/div/div[3]/div/div/div/div/div[2]/ul/li[12]/span"
+URL_DETAILS = "https://animalcare.lacounty.gov/view-our-animals/?animalCareCenter=ALL&animalType=ALL&sex=ALL&breed=ALL&animalAge=ALL&animalSize=ALL&animalID=&animalDetail="
+
+def get_animal_details(driver, ID_list):
+    """
+    get animal details from page
+    :param ID_list:
+    :return:
+    """
+    animal_dict = {}
+    for ID in ID_list:
+        driver.get(URL_DETAILS+ID)
+        time.sleep(1)
+        elements = driver.find_elements_by_class_name('col-sm-12')
+        time.sleep(1)
+        details_list = []
+        for i in elements:
+            element_text = i.text
+            # print(element_text)
+            # if element_text != '':
+            #     details_list = element_text.split('\n')
+            #     print(details_list)
+            if element_text != '':
+                details_list.append(element_text.split('\n'))
+
+        print(details_list)
+        # animal_dict[ID] = [details_list[6:10], details_list[12], details_list[14:16]]
+    # print(animal_dict)
+
+
 
 
 def get_animal_id(driver, ID_list):
@@ -38,7 +69,7 @@ def move_to_next_page(driver):
         time.sleep(1)
         print("Navigating to Next Page")
         return True
-    except (TimeoutException, WebDriverException) as e:
+    except (TimeoutException, WebDriverException):
         print("Last page reached")
         return False
 
@@ -62,6 +93,9 @@ def main():
     while has_next_page:
         ID_list = get_animal_id(driver, ID_list)
         has_next_page = move_to_next_page(driver)
+        
+    get_animal_details(driver, ID_list)
+
 
     driver.quit()
 
