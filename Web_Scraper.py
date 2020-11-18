@@ -4,18 +4,25 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support import expected_conditions as ec
 from selenium.common.exceptions import TimeoutException, WebDriverException
+import sys
+import logging
+import csv
 
-URL = "https://animalcare.lacounty.gov/view-our-animals/?animalCareCenter=ALL&animalType=ALL&sex=ALL&breed=ALL&animalAge=ALL&animalSize=ALL&animalID=&pageNumber=1&animalDetail="
-XPATH_ANIMAL_ID = "//html/body/div[1]/div[2]/div/div/div/div/div[2]/div/div/div/div/div/div[3]/div/div/div/div/div[3]/div/div[3]/div"
+URL = "https://animalcare.lacounty.gov/view-our-animals/?animalCareCenter=ALL&animalType=ALL&sex=ALL&breed=ALL" \
+      "&animalAge=ALL&animalSize=ALL&animalID=&pageNumber=1&animalDetail="
+XPATH_ANIMAL_ID = "//html/body/div[1]/div[2]/div/div/div/div/div[2]/div/div/div/div/div/div[3]/div/div/div/div/" \
+                  "div[3]/div/div[3]/div"
 ANIMAL_DETAIL_CLASS = "animalDetailItem"
-XPATH_NEXT_PAGE = "/html/body/div[1]/div[2]/div/div/div/div/div[2]/div/div/div/div/div/div[3]/div/div/div/div/div[2]/ul/li[12]/span"
-URL_DETAILS = "https://animalcare.lacounty.gov/view-our-animals/?animalCareCenter=ALL&animalType=ALL&sex=ALL&breed=ALL&animalAge=ALL&animalSize=ALL&animalID=&animalDetail="
-CHROME_DRIVER = "C:\web-drivers\chromedriver.exe"
+XPATH_NEXT_PAGE = "/html/body/div[1]/div[2]/div/div/div/div/div[2]/div/div/div/div/div/div[3]/div/div/div/div/" \
+                  "div[2]/ul/li[12]/span"
+URL_DETAILS = "https://animalcare.lacounty.gov/view-our-animals/?animalCareCenter=ALL&animalType=ALL&sex=ALL" \
+              "&breed=ALL&animalAge=ALL&animalSize=ALL&animalID=&animalDetail="
+CHROME_DRIVER = "C:\\web-drivers\\chromedriver.exe"
+CSV_COLUMNS = ['Animal ID', 'Breed', 'Sex', 'Age', 'Fixed', 'Location', 'Intake Date', 'Available Date']
 
-
-def get_animal_details(driver, ID_list):
+def get_animal_details(driver, id_list):
     """
     get animal details from page by animal ID
     """
@@ -23,8 +30,8 @@ def get_animal_details(driver, ID_list):
     animal_dict = {}
 
     # iterate over animal IDs and gather animal details
-    for ID in ID_list:
-        driver.get(URL_DETAILS+ID)
+    for aid in id_list:
+        driver.get(URL_DETAILS+aid)
         time.sleep(1)
         elements = driver.find_elements_by_class_name('col-sm-12')
         time.sleep(1)
@@ -38,65 +45,67 @@ def get_animal_details(driver, ID_list):
 
         # puts animal details into user-friendly readable format
         clean_list = clean_animal_list(details_list)
-        print(clean_list)
-        animal_dict[ID] = clean_list
+        logging.info(clean_list)
+        animal_dict[aid] = clean_list
 
     # print full dictionary with animal IDs as keys and details as values
-    print(animal_dict)
+    return animal_dict
 
 
 def clean_animal_list(details_list):
     """
-    scrap animal detail list and store: breed, sex, age, fixed, location, intake date and availability date in new list
+    scrape animal detail list and store: breed, sex, age, fixed, location, intake date and availability date in new list
     """
     try:
-        breed = details_list[1]
-        sex = details_list[2]
-        age = details_list[3]
-        fixed = details_list[4]
-        location = details_list[7]
-        intake_date = details_list[9]
-        available_date = details_list[10]
-        return [breed[1], sex[1], age[1], fixed[1], location[1], intake_date[1], available_date[1]]
+        return [details_list[1][1], details_list[2][1], details_list[3][1], details_list[4][1],
+                details_list[7][1], details_list[9][1], details_list[10][1]]
     except IndexError:
-        return ['no result']
+        return []
 
 
-def get_animal_id(driver, ID_list):
+def get_animal_id_list(driver, id_list):
     """stores animal IDs from webpage into list
     """
     wait = WebDriverWait(driver, 10)
-    wait.until(EC.element_to_be_clickable((By.XPATH, XPATH_ANIMAL_ID)))
+    wait.until(ec.element_to_be_clickable((By.XPATH, XPATH_ANIMAL_ID)))
 
     elements = driver.find_elements_by_class_name(ANIMAL_DETAIL_CLASS)
     for item in elements:
         element_text = item.text
         if 'ID' in element_text:
-            ID_num = element_text.split(' ')
-            ID_list.append(ID_num[-1])
-            print(ID_num[-1])
-    return ID_list
+            id_num = element_text.split(' ')
+            id_list.append(id_num[-1])
+            logging.info(id_num[-1])
+    return id_list
 
 
 def move_to_next_page(driver):
     """move to next page, returns true if has next page and false when reached last page
     """
     try:
-        driver.execute_script("return arguments[0].scrollIntoView(true);", WebDriverWait(driver, 20).until(EC.element_to_be_clickable((By.XPATH, XPATH_NEXT_PAGE))))
+        driver.execute_script("return arguments[0].scrollIntoView(true);", WebDriverWait(driver, 20).
+                              until(ec.element_to_be_clickable((By.XPATH, XPATH_NEXT_PAGE))))
         driver.find_element_by_xpath(XPATH_NEXT_PAGE).click()
         time.sleep(1)
-        print("Navigating to Next Page")
         return True
     except (TimeoutException, WebDriverException):
-        print("Last page reached")
         return False
 
 
 def main():
 
-    # Initiates the connection to the host URL
-    driver = webdriver.Chrome(executable_path=CHROME_DRIVER)
-    driver.get(URL)
+    try:
+        # Initiates the connection to the host URL
+        driver = webdriver.Chrome(executable_path=CHROME_DRIVER)
+        driver.get(URL)
+    except WebDriverException:
+        print('Cannot reach URL: {}'.format(URL))
+        print('See README, requires chrome driver installation')
+        sys.exit(1)
+
+    # Create log file
+    logging.basicConfig(filename='scraper.log', level=logging.INFO)
+    logging.info('Started')
 
     # view options for next page
     options = Options()
@@ -105,17 +114,26 @@ def main():
     options.add_argument("--disable-extensions")
 
     # Initializing parameters for gathering animal IDs
-    ID_list = []
+    id_list = []
     has_next_page = True
 
     # Gather animal IDs from every webpage
     while has_next_page:
-        ID_list = get_animal_id(driver, ID_list)
+        id_list = get_animal_id_list(driver, id_list)
         has_next_page = move_to_next_page(driver)
 
     # Gather animal details from individual animal pages
-    get_animal_details(driver, ID_list)
+    animal_dict = get_animal_details(driver, id_list)
 
+    # Create CSV file to store data
+    with open('animal_data.csv', 'wt') as write:
+        write_file = csv.DictWriter(write, fieldnames=CSV_COLUMNS)
+        write_file.writeheader()
+        # store animal data in CSV file
+        for key, value in animal_dict:
+            write_file.writerow(key, value)
+
+    logging.info('Finished')
     driver.quit()
 
 
