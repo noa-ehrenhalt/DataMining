@@ -9,6 +9,8 @@ from selenium.common.exceptions import TimeoutException, WebDriverException
 import sys
 import logging
 import csv
+from datetime import datetime
+
 
 URL = "https://animalcare.lacounty.gov/view-our-animals/?animalCareCenter=ALL&animalType=ALL&sex=ALL&breed=ALL" \
       "&animalAge=ALL&animalSize=ALL&animalID=&pageNumber=1&animalDetail="
@@ -22,12 +24,13 @@ URL_DETAILS = "https://animalcare.lacounty.gov/view-our-animals/?animalCareCente
 CHROME_DRIVER = "C:\\web-drivers\\chromedriver.exe"
 CSV_COLUMNS = ['Animal ID', 'Breed', 'Sex', 'Age', 'Fixed', 'Location', 'Intake Date', 'Available Date']
 
+
 def get_animal_details(driver, id_list):
     """
     get animal details from page by animal ID
     """
     # Initializing dictionary to store animal details
-    animal_dict = {}
+    animal_list = []
 
     # iterate over animal IDs and gather animal details
     for aid in id_list:
@@ -44,23 +47,25 @@ def get_animal_details(driver, id_list):
                     details_list.append(temp_list)
 
         # puts animal details into user-friendly readable format
-        clean_list = clean_animal_list(details_list)
+        clean_list = clean_animal_list(aid, details_list)
         logging.info(clean_list)
-        animal_dict[aid] = clean_list
+        animal_list.append(clean_list)
 
     # print full dictionary with animal IDs as keys and details as values
-    return animal_dict
+    return animal_list
 
 
-def clean_animal_list(details_list):
+def clean_animal_list(aid, details_list):
     """
-    scrape animal detail list and store: breed, sex, age, fixed, location, intake date and availability date in new list
+    scrape animal detail list and store: breed, sex, age, fixed, location, intake date and availability date and store
+    in a dictionary
     """
     try:
-        return [details_list[1][1], details_list[2][1], details_list[3][1], details_list[4][1],
-                details_list[7][1], details_list[9][1], details_list[10][1]]
+        return {'Animal ID': aid, 'Breed': details_list[1][1], 'Sex': details_list[2][1], 'Age': details_list[3][1],
+                'Fixed': details_list[4][1], 'Location': details_list[7][1], 'Intake Date': details_list[9][1],
+                'Available Date': details_list[10][1]}
     except IndexError:
-        return []
+        return {}
 
 
 def get_animal_id_list(driver, id_list):
@@ -105,7 +110,7 @@ def main():
 
     # Create log file
     logging.basicConfig(filename='scraper.log', level=logging.INFO)
-    logging.info('Started')
+    logging.info('Started: ' + str(datetime.now()))
 
     # view options for next page
     options = Options()
@@ -130,10 +135,10 @@ def main():
         write_file = csv.DictWriter(write, fieldnames=CSV_COLUMNS)
         write_file.writeheader()
         # store animal data in CSV file
-        for key, value in animal_dict:
-            write_file.writerow(key, value)
+        for row in animal_dict:
+            write_file.writerow(row)
 
-    logging.info('Finished')
+    logging.info('Finished: ' + str(datetime.now()))
     driver.quit()
 
 
