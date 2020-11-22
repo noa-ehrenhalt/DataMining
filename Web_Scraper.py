@@ -22,7 +22,7 @@ XPATH_NEXT_PAGE = "/html/body/div[1]/div[2]/div/div/div/div/div[2]/div/div/div/d
 URL_DETAILS = "https://animalcare.lacounty.gov/view-our-animals/?animalCareCenter=ALL&animalType=ALL&sex=ALL" \
               "&breed=ALL&animalAge=ALL&animalSize=ALL&animalID=&animalDetail="
 CHROME_DRIVER = "C:\\web-drivers\\chromedriver.exe"
-CSV_COLUMNS = ['Animal ID', 'Breed', 'Sex', 'Age', 'Fixed', 'Location', 'Intake Date', 'Available Date']
+CSV_COLUMNS = ['Animal ID', 'Breed', 'Sex', 'Age', 'Fixed', 'Intake Status', 'Location', 'Intake Date', 'Available Date']
 
 
 def get_animal_details(driver, id_list):
@@ -57,12 +57,12 @@ def get_animal_details(driver, id_list):
 
 def clean_animal_list(aid, details_list):
     """
-    scrape animal detail list and store: breed, sex, age, fixed, location, intake date and availability date and store
+    scrape animal detail list and store: breed, sex, age, fixed, intake status, location, intake date and availability date and store
     in a dictionary
     """
     try:
         return {'Animal ID': aid, 'Breed': details_list[1][1], 'Sex': details_list[2][1], 'Age': details_list[3][1],
-                'Fixed': details_list[4][1], 'Location': details_list[7][1], 'Intake Date': details_list[9][1],
+                'Fixed': details_list[4][1], 'Intake Status': details_list[5][1], 'Location': details_list[7][1], 'Intake Date': details_list[9][1],
                 'Available Date': details_list[10][1]}
     except IndexError:
         return {}
