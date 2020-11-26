@@ -1,5 +1,9 @@
 import mysql.connector
 from mysql.connector import errorcode
+import sqlalchemy as alc
+import pymysql
+import csv
+import pandas as pd
 
 DATABASE_NAME = "animal_database"
 TABLES = {}
@@ -50,12 +54,42 @@ TABLES['Animals'] = (
   ") ENGINE=InnoDB"
 )
 
+
+add_breed = ("INSERT INTO Breeds "
+             "(breed_name) "
+             "VALUES (%s)")
+
+add_shelters = ("INSERT INTO Shelters "
+                "(location_name)"
+                "VALUES (%(Location)s)")
+
+add_intake = ("INSERT INTO Intakes "
+              "(intake_status)"
+              "VALUES (%(status)s)")
+
+"""
+add_animal = ("INSERT INTO Animals "
+              "("
+              ")")
+"""
+
+
+
+host = "localhost:3308"
+user = "root"
+password = "\'"
+
+engine = alc.create_engine('mysql+pymysql://{}:{}@{}/animal_database'.format(user, password, host))
+sql_data = pd.read_sql_table('Breeds', engine)
+
+
+"""
 mydb = mysql.connector.connect(
-  host="localhost",
+  host="localhost:3308",
   user="root",
   password="\'"
 )
-
+"""
 mycursor = mydb.cursor()
 
 try:
@@ -78,6 +112,25 @@ for table_name in TABLES:
       print(er.msg)
   else:
     print("OK")
+
+
+
+df = pd.read_csv('animal_data.csv')
+df.dropna(subset=['Animal ID'], inplace=True)
+
+for index, row in df.iterrows():
+    try:
+        breed_id = mycursor.execute("IF EXISTS (SELECT breed_id FROM Breeds WHERE breed_name={})"
+                                    "BEGIN"
+                                    "".format(df['Breed'][index]))
+    except:
+        breed_name = (df['Breed'][index], )
+        mycursor.execute(add_breed, breed_name)
+        breed_id = mycursor.lastrowid
+
+mydb.commit()
+
+
 
 mycursor.close()
 mydb.close()

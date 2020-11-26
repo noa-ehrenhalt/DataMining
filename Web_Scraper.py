@@ -21,7 +21,7 @@ XPATH_NEXT_PAGE = "/html/body/div[1]/div[2]/div/div/div/div/div[2]/div/div/div/d
                   "div[2]/ul/li[12]/span"
 URL_DETAILS = "https://animalcare.lacounty.gov/view-our-animals/?animalCareCenter=ALL&animalType=ALL&sex=ALL" \
               "&breed=ALL&animalAge=ALL&animalSize=ALL&animalID=&animalDetail="
-CHROME_DRIVER = "C:\\web-drivers\\chromedriver.exe"
+CHROME_DRIVER = "C:/Users/arian/Downloads/chromedriver1/chromedriver.exe"
 CSV_COLUMNS = ['Animal ID', 'Breed', 'Sex', 'Age', 'Fixed', 'Intake Status', 'Location', 'Intake Date', 'Available Date']
 
 
