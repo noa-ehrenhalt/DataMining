@@ -1,3 +1,6 @@
+"""
+animal_db creates animal_database and its associated table
+"""
 import mysql.connector
 from mysql.connector import errorcode
 
@@ -50,20 +53,7 @@ TABLES['Animals'] = (
   ") ENGINE=InnoDB"
 )
 
-
-add_breed = ("INSERT INTO Breeds "
-             "(breed_name) "
-             "VALUES (%s)")
-
-add_shelters = ("INSERT INTO Shelters "
-                "(location_name)"
-                "VALUES (%(Location)s)")
-
-add_intake = ("INSERT INTO Intakes "
-              "(intake_status)"
-              "VALUES (%(status)s)")
-
-
+# Creates MySQL connection
 mydb = mysql.connector.connect(
   host="localhost",
   user="root",
@@ -73,28 +63,29 @@ mydb = mysql.connector.connect(
 
 mycursor = mydb.cursor()
 
+# Creates animal_database, prints statement if database exists or error is encountered during database creation
 try:
-  mycursor.execute("CREATE DATABASE animal_database")
-  print("Database {} created successfully".format(DATABASE_NAME))
+    mycursor.execute("CREATE DATABASE animal_database")
+    print("Database {} created successfully".format(DATABASE_NAME))
 except mysql.connector.Error as er:
-  print("Error creating database: {}".format(er))
+    print("Error creating database: {}".format(er))
 
-
+# Creates tables for animal_database, prints statement if tables exist or error is encountered during table creation
 mycursor.execute("USE {}".format(DATABASE_NAME))
 for table_name in TABLES:
-  table_description = TABLES[table_name]
-  try:
-    print("Creating table {}: ".format(table_name), end='')
-    mycursor.execute(table_description)
-  except mysql.connector.Error as er:
-    if er.errno == errorcode.ER_TABLE_EXISTS_ERROR:
-      print("already exists.")
+    table_description = TABLES[table_name]
+    try:
+      print("Creating table {}: ".format(table_name), end='')
+      mycursor.execute(table_description)
+    except mysql.connector.Error as er:
+      if er.errno == errorcode.ER_TABLE_EXISTS_ERROR:
+        print("already exists.")
+      else:
+        print(er.msg)
     else:
-      print(er.msg)
-  else:
-    print("OK")
+      print("OK")
 
-
+# Closes database connection
 mycursor.close()
 mydb.close()
 
