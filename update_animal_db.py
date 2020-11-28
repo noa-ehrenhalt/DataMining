@@ -35,7 +35,6 @@ def update_ids(col_id, table, col_name, value):
         type_id = get_id(col_id, table, col_name, value)
     return type_id
 
-
 host = "localhost:3306"
 user = "root"
 password = "\'"
@@ -67,3 +66,8 @@ for index, row in df.iterrows():
 # Commit changes to database and close connection
 trans.commit()
 conn.close()
+
+animal_table = pd.read_sql_table('animals', engine)
+breed_table = pd.read_sql_table('breeds', engine)
+location_table = pd.read_sql_table('shelters', engine)
+intake_table = pd.read_sql_table('intakes', engine)

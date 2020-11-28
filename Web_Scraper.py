@@ -10,6 +10,8 @@ import sys
 import logging
 import csv
 from datetime import datetime
+import animal_db
+
 
 
 URL = "https://animalcare.lacounty.gov/view-our-animals/?animalCareCenter=ALL&animalType=ALL&sex=ALL&breed=ALL" \
@@ -68,7 +70,7 @@ def clean_animal_list(aid, details_list):
         return {}
 
 
-def get_animal_id_list(driver, id_list):
+def get_animal_id_list(driver, id_list, database_ids):
     """stores animal IDs from webpage into list
     """
     wait = WebDriverWait(driver, 10)
@@ -79,8 +81,9 @@ def get_animal_id_list(driver, id_list):
         element_text = item.text
         if 'ID' in element_text:
             id_num = element_text.split(' ')
-            id_list.append(id_num[-1])
-            logging.info(id_num[-1])
+            if id_num[-1] not in database_ids:
+                id_list.append(id_num[-1])
+                logging.info(id_num[-1])
     return id_list
 
 
@@ -118,13 +121,15 @@ def main():
     options.add_argument("disable-infobars")
     options.add_argument("--disable-extensions")
 
+    database_ids = animal_db.database_ids
+
     # Initializing parameters for gathering animal IDs
     id_list = []
     has_next_page = True
 
     # Gather animal IDs from every webpage
     while has_next_page:
-        id_list = get_animal_id_list(driver, id_list)
+        id_list = get_animal_id_list(driver, id_list, database_ids)
         has_next_page = move_to_next_page(driver)
 
     # Gather animal details from individual animal pages

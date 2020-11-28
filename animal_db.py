@@ -61,7 +61,7 @@ mydb = mysql.connector.connect(
   auth_plugin='mysql_native_password'
 )
 
-mycursor = mydb.cursor()
+mycursor = mydb.cursor(buffered=True)
 
 # Creates animal_database, prints statement if database exists or error is encountered during database creation
 try:
@@ -84,6 +84,10 @@ for table_name in TABLES:
         print(er.msg)
     else:
       print("OK")
+
+mycursor.execute("SELECT animal_id FROM animal_database.animals;")
+id_list = list(mycursor.fetchall())
+database_ids = [a_id[0] for a_id in id_list]
 
 # Closes database connection
 mycursor.close()
