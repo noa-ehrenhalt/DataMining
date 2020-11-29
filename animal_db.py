@@ -3,6 +3,7 @@ animal_db creates animal_database and its associated table
 """
 import mysql.connector
 from mysql.connector import errorcode
+import logging
 
 DATABASE_NAME = "animal_database"
 TABLES = {}
@@ -66,24 +67,24 @@ mycursor = mydb.cursor(buffered=True)
 # Creates animal_database, prints statement if database exists or error is encountered during database creation
 try:
     mycursor.execute("CREATE DATABASE animal_database")
-    print("Database {} created successfully".format(DATABASE_NAME))
+    logging.info("Database {} created successfully".format(DATABASE_NAME))
 except mysql.connector.Error as er:
-    print("Error creating database: {}".format(er))
+    logging.error("Error creating database: {}".format(er))
 
 # Creates tables for animal_database, prints statement if tables exist or error is encountered during table creation
 mycursor.execute("USE {}".format(DATABASE_NAME))
 for table_name in TABLES:
     table_description = TABLES[table_name]
     try:
-      print("Creating table {}: ".format(table_name), end='')
-      mycursor.execute(table_description)
+        logging.info("Creating table {}: ".format(table_name), end='')
+        mycursor.execute(table_description)
     except mysql.connector.Error as er:
-      if er.errno == errorcode.ER_TABLE_EXISTS_ERROR:
-        print("already exists.")
-      else:
-        print(er.msg)
+        if er.errno == errorcode.ER_TABLE_EXISTS_ERROR:
+            logging.error("already exists.")
+        else:
+            logging.error(er.msg)
     else:
-      print("OK")
+        logging.info("OK")
 
 mycursor.execute("SELECT animal_id FROM animal_database.animals;")
 id_list = list(mycursor.fetchall())

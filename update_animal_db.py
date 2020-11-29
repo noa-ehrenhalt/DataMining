@@ -4,6 +4,7 @@ update_animal_db retrieves information stored in the animal_data.csv file and st
 from datetime import datetime
 import pandas as pd
 import sqlalchemy as alc
+import os
 
 
 def get_id(col_id, table, col_name, value):
@@ -63,11 +64,23 @@ for index, row in df.iterrows():
                    df['Fixed'][index], intake, available)
     conn.execute(add_animal, animal_data)
 
+master_table = conn.execute(f"SELECT * "
+                f"FROM animal_database.animals as a "
+                f"JOIN animal_database.breeds as b "
+                f"ON a.breed_id = b.breed_id "
+                f"JOIN animal_database.shelters as l "
+                f"ON a.location_id = l.location_id "
+                f"JOIN animal_database.intakes as i "
+                f"ON a.intake_id = i.intake_id")
+master_df = pd.DataFrame(master_table.fetchall())
+master_df.columns = master_table.keys()
+master_df.drop(['a_id', 'intake_id', 'location_id', 'breed_id'], axis=1, inplace=True)
+
 # Commit changes to database and close connection
 trans.commit()
 conn.close()
 
-animal_table = pd.read_sql_table('animals', engine)
 breed_table = pd.read_sql_table('breeds', engine)
 location_table = pd.read_sql_table('shelters', engine)
-intake_table = pd.read_sql_table('intakes', engine)
+
+
