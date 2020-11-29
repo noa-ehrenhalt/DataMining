@@ -3,7 +3,14 @@ animal_db creates animal_database and its associated table
 """
 import mysql.connector
 from mysql.connector import errorcode
+from configparser import ConfigParser
 import logging
+logger = logging.getLogger(__name__)
+
+# Reads config file
+config_object = ConfigParser()
+config_object.read('config.ini')
+serverinfo = config_object['SERVERCONFIG']
 
 DATABASE_NAME = "animal_database"
 TABLES = {}
@@ -56,9 +63,9 @@ TABLES['Animals'] = (
 
 # Creates MySQL connection
 mydb = mysql.connector.connect(
-  host="localhost",
-  user="root",
-  password="\'",
+  host=serverinfo['host'],
+  user=serverinfo['user'],
+  password=serverinfo['password'],
   auth_plugin='mysql_native_password'
 )
 
@@ -67,24 +74,24 @@ mycursor = mydb.cursor(buffered=True)
 # Creates animal_database, prints statement if database exists or error is encountered during database creation
 try:
     mycursor.execute("CREATE DATABASE animal_database")
-    logging.info("Database {} created successfully".format(DATABASE_NAME))
+    logger.info("Database {} created successfully".format(DATABASE_NAME))
 except mysql.connector.Error as er:
-    logging.error("Error creating database: {}".format(er))
+    logger.info("Error creating database: {}".format(er))
 
 # Creates tables for animal_database, prints statement if tables exist or error is encountered during table creation
 mycursor.execute("USE {}".format(DATABASE_NAME))
 for table_name in TABLES:
     table_description = TABLES[table_name]
     try:
-        logging.info("Creating table {}: ".format(table_name), end='')
+        logger.info("Creating table {}: ".format(table_name), end='')
         mycursor.execute(table_description)
     except mysql.connector.Error as er:
         if er.errno == errorcode.ER_TABLE_EXISTS_ERROR:
-            logging.error("already exists.")
+            logger.info("already exists.")
         else:
-            logging.error(er.msg)
+            logger.error(er.msg)
     else:
-        logging.info("OK")
+        logger.info("OK")
 
 mycursor.execute("SELECT animal_id FROM animal_database.animals;")
 id_list = list(mycursor.fetchall())

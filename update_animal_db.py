@@ -4,7 +4,7 @@ update_animal_db retrieves information stored in the animal_data.csv file and st
 from datetime import datetime
 import pandas as pd
 import sqlalchemy as alc
-import os
+from configparser import ConfigParser
 
 
 def get_id(col_id, table, col_name, value):
@@ -36,9 +36,14 @@ def update_ids(col_id, table, col_name, value):
         type_id = get_id(col_id, table, col_name, value)
     return type_id
 
-host = "localhost:3306"
-user = "root"
-password = "\'"
+# Read config file
+config_object = ConfigParser()
+config_object.read('config.ini')
+serverinfo = config_object['SERVERCONFIG']
+
+host = serverinfo['host']+serverinfo['port']
+user = serverinfo['user']
+password = serverinfo['password']
 
 add_animal = (f"INSERT INTO animal_database.animals "
               f"(animal_id, intake_id, location_id, breed_id, sex, age, fixed, intake_date, available_date) "
@@ -64,6 +69,7 @@ for index, row in df.iterrows():
                    df['Fixed'][index], intake, available)
     conn.execute(add_animal, animal_data)
 
+# Creates joined dataframe with foreign keys removed
 master_table = conn.execute(f"SELECT * "
                 f"FROM animal_database.animals as a "
                 f"JOIN animal_database.breeds as b "
@@ -80,7 +86,9 @@ master_df.drop(['a_id', 'intake_id', 'location_id', 'breed_id'], axis=1, inplace
 trans.commit()
 conn.close()
 
+# Creates dataframes of breed and location tables
 breed_table = pd.read_sql_table('breeds', engine)
 location_table = pd.read_sql_table('shelters', engine)
+
 
 

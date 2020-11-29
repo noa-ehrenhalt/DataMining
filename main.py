@@ -1,14 +1,21 @@
+"""
+main.py implements the command line interface for the DataMining project
+"""
 from datetime import timedelta, datetime
 import argparse
-import update_animal_db
 import Web_Scraper
+import update_animal_db
 import os
 
 
 def parse():
+    """
+    Defines command line interface options and parses parameters submitted before displaying associated results
+    """
     locations = list(update_animal_db.location_table['location_name'])
     breeds = list(update_animal_db.breed_table['breed_name'])
 
+    # Command line arguments
     parser = argparse.ArgumentParser(description='Shows animals available at Los Angeles County animal shelters')
     parser.add_argument('-d', dest='days', type=int, nargs=1, help='filter result by animal availability in the last d '
                                                                    'number of days')
@@ -21,6 +28,7 @@ def parse():
 
     args = parser.parse_args()
 
+    # Retrieves animal data filtered by inputted parameters
     if args.animal:
         results_df = update_animal_db.master_df[update_animal_db.master_df['animal_id'].isin(args.animal)]
         if results_df.empty:
@@ -44,10 +52,11 @@ def parse():
 
 
 def main():
-    os.system('python Web_Scraper.py')
     parse()
     os.remove('animal_data.csv')
 
 
 if __name__ == '__main__':
+    import logging
+    logging.basicConfig(filename='scraper.log', level=logging.INFO)
     main()
