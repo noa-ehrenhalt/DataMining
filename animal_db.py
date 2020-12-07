@@ -4,7 +4,9 @@ animal_db creates animal_database and its associated table
 import mysql.connector
 from mysql.connector import errorcode
 from configparser import ConfigParser
+from datetime import datetime
 import logging
+
 logger = logging.getLogger(__name__)
 
 # Reads config file
@@ -71,35 +73,42 @@ mydb = mysql.connector.connect(
 
 mycursor = mydb.cursor(buffered=True)
 
-# Creates animal_database, prints statement if database exists or error is encountered during database creation
-try:
-    mycursor.execute("CREATE DATABASE animal_database")
-    logger.info("Database {} created successfully".format(DATABASE_NAME))
-except mysql.connector.Error as er:
-    logger.info("Error creating database: {}".format(er))
 
-# Creates tables for animal_database, prints statement if tables exist or error is encountered during table creation
-mycursor.execute("USE {}".format(DATABASE_NAME))
-for table_name in TABLES:
-    table_description = TABLES[table_name]
+def get_aids():
+    mycursor.execute("SELECT animal_id FROM animal_database.animals;")
+    id_list = list(mycursor.fetchall())
+    database_ids = [a_id[0] for a_id in id_list]
+    return database_ids
+
+
+def main():
+    # Start log file
+    logger.info('Started: ' + str(datetime.now()))
+
+    # Creates animal_database, prints statement if database exists or error is encountered during database creation
     try:
-        logger.info("Creating table {}: ".format(table_name), end='')
-        mycursor.execute(table_description)
+        mycursor.execute("CREATE DATABASE animal_database")
+        logger.info("Database {} created successfully".format(DATABASE_NAME))
     except mysql.connector.Error as er:
-        if er.errno == errorcode.ER_TABLE_EXISTS_ERROR:
-            logger.info("already exists.")
+        logger.info("Error creating database: {}".format(er))
+
+    # Creates tables for animal_database, prints statement if tables exist or error is encountered during table creation
+    mycursor.execute("USE {}".format(DATABASE_NAME))
+    for table_name in TABLES:
+        table_description = TABLES[table_name]
+        try:
+            logger.info("Creating table {}: ".format(table_name))
+            mycursor.execute(table_description)
+        except mysql.connector.Error as er:
+            if er.errno == errorcode.ER_TABLE_EXISTS_ERROR:
+                logger.info("already exists.")
+            else:
+                logger.error(er.msg)
         else:
-            logger.error(er.msg)
-    else:
-        logger.info("OK")
+            logger.info("OK")
 
-mycursor.execute("SELECT animal_id FROM animal_database.animals;")
-id_list = list(mycursor.fetchall())
-database_ids = [a_id[0] for a_id in id_list]
 
-# Closes database connection
-mycursor.close()
-mydb.close()
+
 
 
 

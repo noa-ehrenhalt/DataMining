@@ -109,48 +109,50 @@ def move_to_next_page(driver):
         return False
 
 
+def main():
+    try:
+        # Initiates the connection to the host URL
+        driver = webdriver.Chrome(executable_path=CHROME_DRIVER)
+        driver.get(URL)
+    except WebDriverException:
+        print('Cannot reach URL: {}'.format(URL))
+        print('See README, requires chrome driver installation')
+        sys.exit(1)
 
-try:
-    # Initiates the connection to the host URL
-    driver = webdriver.Chrome(executable_path=CHROME_DRIVER)
-    driver.get(URL)
-except WebDriverException:
-    print('Cannot reach URL: {}'.format(URL))
-    print('See README, requires chrome driver installation')
-    sys.exit(1)
+    # view options for next page
+    options = Options()
+    options.add_argument("start-maximized")
+    options.add_argument("disable-infobars")
+    options.add_argument("--disable-extensions")
 
-# Start log file
-logger.info('Started: ' + str(datetime.now()))
+    database_ids = animal_db.get_aids()
 
-# view options for next page
-options = Options()
-options.add_argument("start-maximized")
-options.add_argument("disable-infobars")
-options.add_argument("--disable-extensions")
+    # Initializing parameters for gathering animal IDs
+    id_list = []
+    has_next_page = True
 
-database_ids = animal_db.database_ids
+    # Gather animal IDs from every webpage
+    while has_next_page:
+        id_list = get_animal_id_list(driver, id_list, database_ids)
+        has_next_page = move_to_next_page(driver)
 
-# Initializing parameters for gathering animal IDs
-id_list = []
-has_next_page = True
+    # Gather animal details from individual animal pages
+    animal_dict = get_animal_details(driver, id_list)
 
-# Gather animal IDs from every webpage
-while has_next_page:
-    id_list = get_animal_id_list(driver, id_list, database_ids)
-    has_next_page = move_to_next_page(driver)
+    # Create CSV file to store data
+    csv_file = '{}\\animal_data.csv'.format(CDIR)
+    with open(csv_file, 'wt') as write:
+        write_file = csv.DictWriter(write, fieldnames=CSV_COLUMNS)
+        write_file.writeheader()
+        # store animal data in CSV file
+        for row in animal_dict:
+            write_file.writerow(row)
 
-# Gather animal details from individual animal pages
-animal_dict = get_animal_details(driver, id_list)
+    logger.info('Finished: ' + str(datetime.now()))
+    driver.quit()
 
-# Create CSV file to store data
-csv_file = '{}\\animal_data.csv'.format(CDIR)
-with open(csv_file, 'wt') as write:
-    write_file = csv.DictWriter(write, fieldnames=CSV_COLUMNS)
-    write_file.writeheader()
-    # store animal data in CSV file
-    for row in animal_dict:
-        write_file.writerow(row)
+    # Closes database connection
+    animal_db.mycursor.close()
+    animal_db.mydb.close()
 
-logger.info('Finished: ' + str(datetime.now()))
-driver.quit()
 
