@@ -46,7 +46,6 @@ def master_data():
                                 f"FROM animal_database.animals as a "
                                 f"JOIN animal_database.breeds as b "
                                 f"ON a.breed_id = b.breed_id "
-                                f"ON a.breed_id = b.breed_id "
                                 f"JOIN animal_database.shelters as l "
                                 f"ON a.location_id = l.location_id "
                                 f"JOIN animal_database.intakes as i "
@@ -89,6 +88,8 @@ def main():
     df_api = api.get_petfinder_animals()
 
     df = df_scraper.append(df_api, sort=False)
+    df.reset_index(drop=True, inplace=True)
+
     # Iterate through rows of csv content and add new data to database
     for index, row in df.iterrows():
         breed_id = update_ids('breed_id', 'breeds', 'breed_name', df['Breed'][index])

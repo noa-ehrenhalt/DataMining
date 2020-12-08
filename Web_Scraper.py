@@ -7,7 +7,7 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as ec
-from selenium.common.exceptions import TimeoutException, WebDriverException
+from selenium.common.exceptions import TimeoutException, WebDriverException, UnexpectedAlertPresentException
 import sys
 import csv
 from datetime import datetime
@@ -103,9 +103,10 @@ def move_to_next_page(driver):
         driver.execute_script("return arguments[0].scrollIntoView(true);", WebDriverWait(driver, 20).
                               until(ec.element_to_be_clickable((By.XPATH, XPATH_NEXT_PAGE))))
         driver.find_element_by_xpath(XPATH_NEXT_PAGE).click()
-        time.sleep(1)
+        time.sleep(2)
         return True
-    except (TimeoutException, WebDriverException):
+    except (TimeoutException, WebDriverException, UnexpectedAlertPresentException):
+        logger.info('Last page')
         return False
 
 
@@ -132,10 +133,14 @@ def main():
     has_next_page = True
 
     # Gather animal IDs from every webpage
-    while has_next_page:
+    # while has_next_page:
+    #     id_list = get_animal_id_list(driver, id_list, database_ids)
+    #     has_next_page = move_to_next_page(driver)
+    i = 0
+    while i <= 20:
         id_list = get_animal_id_list(driver, id_list, database_ids)
-        has_next_page = move_to_next_page(driver)
-
+        move_to_next_page(driver)
+        i += 20
     # Gather animal details from individual animal pages
     animal_dict = get_animal_details(driver, id_list)
 

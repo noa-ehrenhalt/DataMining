@@ -65,7 +65,8 @@ def get_petfinder_animals():
                 logger.info({'Animal ID': animal['id'], 'Breed': animal['breeds']['primary'], 'Sex': gender,
                                     'Age': animal['age'], 'Fixed': fixed, 'Intake Status': animal['status']})
                 new_animals.append({'Animal ID': animal['id'], 'Breed': animal['breeds']['primary'], 'Sex': gender,
-                                    'Age': animal['age'], 'Fixed': fixed, 'Intake Status': animal['status']})
+                                    'Age': animal['age'], 'Fixed': fixed, 'Intake Status': animal['status'],
+                                    'Location': 'PetFinder'})
 
     df = pd.DataFrame(new_animals)
     animal_db.mycursor.close()
