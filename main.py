@@ -68,3 +68,4 @@ if __name__ == '__main__':
     import logging
     logging.basicConfig(filename='scraper.log', level=logging.INFO)
     main()
+    logging.info('Finished: ' + str(datetime.now()))

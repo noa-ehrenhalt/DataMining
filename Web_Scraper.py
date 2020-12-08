@@ -148,11 +148,7 @@ def main():
         for row in animal_dict:
             write_file.writerow(row)
 
-    logger.info('Finished: ' + str(datetime.now()))
     driver.quit()
 
-    # Closes database connection
-    animal_db.mycursor.close()
-    animal_db.mydb.close()
 
 
