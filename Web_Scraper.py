@@ -103,7 +103,7 @@ def move_to_next_page(driver):
         driver.execute_script("return arguments[0].scrollIntoView(true);", WebDriverWait(driver, 20).
                               until(ec.element_to_be_clickable((By.XPATH, XPATH_NEXT_PAGE))))
         driver.find_element_by_xpath(XPATH_NEXT_PAGE).click()
-        time.sleep(2)
+        time.sleep(1)
         return True
     except (TimeoutException, WebDriverException, UnexpectedAlertPresentException):
         logger.info('Last page')

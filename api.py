@@ -52,7 +52,7 @@ def get_petfinder_animals():
         animals = data['animals']
         for animal in animals:
             # check if animal already exists in database
-            if animal['id'] not in database_ids:
+            if str(animal['id']) not in database_ids:
                 # store fixed data in accordance to Animal Shelter DB format
                 gender = animal['gender']
                 fixed = animal['attributes']['spayed_neutered']

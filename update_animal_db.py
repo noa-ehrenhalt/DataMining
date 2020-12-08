@@ -95,7 +95,6 @@ def main():
         breed_id = update_ids('breed_id', 'breeds', 'breed_name', df['Breed'][index])
         location_id = update_ids('location_id', 'shelters', 'location_name', df['Location'][index])
         intake_id = update_ids('intake_id', 'intakes', 'intake_status', df['Intake Status'][index])
-        print(df['Intake Date'][index])
         if pd.notna(df.iloc[index][7]):
             intake = datetime.strptime(df['Intake Date'][index], '%B %d, %Y').date()
             available = datetime.strptime(df['Available Date'][index], '%B %d, %Y').date()
