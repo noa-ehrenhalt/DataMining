@@ -39,6 +39,9 @@ class PetFinder:
 
 
 def get_petfinder_animals():
+    """
+    Retrieve animals from PetFinder API
+    """
     test = PetFinder()
     database_ids = animal_db.get_aids()
     new_animals = []
@@ -51,8 +54,10 @@ def get_petfinder_animals():
         data = r.json()
         animals = data['animals']
         for animal in animals:
+
             # check if animal already exists in database
             if str(animal['id']) not in database_ids:
+
                 # store fixed data in accordance to Animal Shelter DB format
                 gender = animal['gender']
                 fixed = animal['attributes']['spayed_neutered']
@@ -66,9 +71,11 @@ def get_petfinder_animals():
                                     'Age': animal['age'], 'Fixed': fixed, 'Intake Status': animal['status']})
                 new_animals.append({'Animal ID': animal['id'], 'Breed': animal['breeds']['primary'], 'Sex': gender,
                                     'Age': animal['age'], 'Fixed': fixed, 'Intake Status': animal['status'],
-                                    'Location': 'PetFinder'})
+                                    'Location': animal['contact']['address']['city']})
 
     df = pd.DataFrame(new_animals)
+
+    # Close SQL connection
     animal_db.mycursor.close()
     animal_db.mydb.close()
     return df

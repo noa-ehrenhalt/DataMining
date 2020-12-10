@@ -40,8 +40,8 @@ def update_ids(col_id, table, col_name, value):
 
 def master_data():
     """
+    Creates joined dataframe with foreign keys removed
     """
-    # Creates joined dataframe with foreign keys removed
     master_table = conn.execute(f"SELECT * "
                                 f"FROM animal_database.animals as a "
                                 f"JOIN animal_database.breeds as b "
@@ -85,8 +85,10 @@ def main():
     df_scraper = pd.read_csv('animal_data.csv')
     df_scraper.dropna(subset=['Animal ID'], inplace=True)
 
+    # Get API df
     df_api = api.get_petfinder_animals()
 
+    # Joins WebScraper and API df
     df = df_scraper.append(df_api, sort=False)
     df.reset_index(drop=True, inplace=True)
 

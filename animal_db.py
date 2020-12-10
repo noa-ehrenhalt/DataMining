@@ -75,6 +75,8 @@ mycursor = mydb.cursor(buffered=True)
 
 
 def get_aids():
+    """Selects animal IDs from the database
+    """
     mycursor.execute("SELECT animal_id FROM animal_database.animals;")
     id_list = list(mycursor.fetchall())
     database_ids = [a_id[0] for a_id in id_list]

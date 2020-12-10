@@ -7,14 +7,15 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as ec
-from selenium.common.exceptions import TimeoutException, WebDriverException, UnexpectedAlertPresentException
+from selenium.common.exceptions import TimeoutException, WebDriverException, NoAlertPresentException, \
+    StaleElementReferenceException
 import sys
 import csv
-from datetime import datetime
 import animal_db
 import os
 from configparser import ConfigParser
 import logging
+
 logger = logging.getLogger(__name__)
 
 # Read config file
@@ -104,8 +105,19 @@ def move_to_next_page(driver):
                               until(ec.element_to_be_clickable((By.XPATH, XPATH_NEXT_PAGE))))
         driver.find_element_by_xpath(XPATH_NEXT_PAGE).click()
         time.sleep(1)
+
+        # Check for last page alert pop-up
+        try:
+            driver.switch_to.alert.accept()
+            time.sleep(0.5)
+            logger.info('Last page')
+            return False
+        except NoAlertPresentException:
+            return True
+
+    except StaleElementReferenceException:
         return True
-    except (TimeoutException, WebDriverException, UnexpectedAlertPresentException):
+    except (TimeoutException, WebDriverException):
         logger.info('Last page')
         return False
 
@@ -126,6 +138,7 @@ def main():
     options.add_argument("disable-infobars")
     options.add_argument("--disable-extensions")
 
+    # Get existing animals from database
     database_ids = animal_db.get_aids()
 
     # Initializing parameters for gathering animal IDs
@@ -133,14 +146,10 @@ def main():
     has_next_page = True
 
     # Gather animal IDs from every webpage
-    # while has_next_page:
-    #     id_list = get_animal_id_list(driver, id_list, database_ids)
-    #     has_next_page = move_to_next_page(driver)
-    i = 0
-    while i <= 20:
+    while has_next_page:
         id_list = get_animal_id_list(driver, id_list, database_ids)
-        move_to_next_page(driver)
-        i += 20
+        has_next_page = move_to_next_page(driver)
+
     # Gather animal details from individual animal pages
     animal_dict = get_animal_details(driver, id_list)
 
@@ -149,6 +158,7 @@ def main():
     with open(csv_file, 'wt') as write:
         write_file = csv.DictWriter(write, fieldnames=CSV_COLUMNS)
         write_file.writeheader()
+
         # store animal data in CSV file
         for row in animal_dict:
             write_file.writerow(row)
